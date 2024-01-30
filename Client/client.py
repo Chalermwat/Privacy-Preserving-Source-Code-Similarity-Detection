@@ -58,7 +58,7 @@ def genFuzzyHash(string):
 if __name__ == "__main__":
     static_var=False
     prepro_code = preprocessing(args.filepath,static_var)
-    print(prepro_code)
+    # print(prepro_code)
     fuzzyHash = genFuzzyHash(prepro_code)
     print('Fuzzy hash:',fuzzyHash)
 
