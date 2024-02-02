@@ -5,7 +5,7 @@ s=0
 
 print(w)
 for index in range(r):
-    s+=index
+    s=s+index
 
 
 print(s)
