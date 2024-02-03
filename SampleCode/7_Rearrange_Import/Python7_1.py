@@ -1,6 +1,8 @@
 import argparse
 import ssdeep
-
+import os
+import re
+import time
 parser = argparse.ArgumentParser(description='Generate Fussy Hash')
 parser.add_argument('filepath', metavar='FilePath', type=str,
                     help='File path to source code')
