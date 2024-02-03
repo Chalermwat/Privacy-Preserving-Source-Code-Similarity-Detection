@@ -1,4 +1,6 @@
 # Privacy-Preserving-Source-Code-Similarity-Detection
+The idea of this application is to normalize the source code and then use Fuzzy hash (ssdeep) to detect the similarity.
+
 The application can detect the similarity even if there is a change as follows:
 1. Adding Whitespace
 2. Adding Comment
