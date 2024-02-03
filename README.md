@@ -5,6 +5,8 @@ The application can detect the similarity even if there is a change as follows:
 3. Adding Multiline comment
 4. Changing variable name
 5. Changing Function name
+6. Duplicating Import_section
+7. Rearrage Import_section
 
 ## Client:
 ```
