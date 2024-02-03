@@ -14,9 +14,12 @@ def hello():
 def CompareHash():
     hash1 = request.form['hash1']
     hash2 = request.form['hash2']
-    score = ssdeep.compare(hash1,hash2)
+    try:
+        score = ssdeep.compare(hash1,hash2)
+    except:
+        return render_template('index.html',score="Invalid Hash")
 
-    return f'Score: {str(score)}'
+    return render_template('index.html',score=str(score))
 
 if __name__ == "__main__":
     app.run(host=HOST, port=PORT, debug=True)

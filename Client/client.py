@@ -111,7 +111,7 @@ def processing(filename,static_var=False):
     # Sort Header
     import_section = list(import_section)
     import_section.sort()
-    result = '\n'.join(import_section) + code_section
+    result = '\n'.join(import_section)+'\n' + code_section
     return result
 
 def addToMap(key,index,map,isVar=True):

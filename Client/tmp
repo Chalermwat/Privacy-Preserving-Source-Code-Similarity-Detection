@@ -1,18 +1,11 @@
-import argparse
-import ssdeep
+round=10
+sum=0
+Welcome_text='# Welcome #'
+End_text="### End ###"
 
-parser = argparse.ArgumentParser(description='Generate Fussy Hash')
-parser.add_argument('filepath', metavar='FilePath', type=str,
-                    help='File path to source code')
+print(Welcome_text)
+for i in range(round):
+    sum+=i
 
-args = parser.parse_args()
-
-def genFuzzyHash(filename):
-    with open(filename, 'r') as f:
-        code_string = ''.join(f.readlines())
-    print(code_string)
-    return ssdeep.hash(code_string)
-
-if __name__ == "__main__":
-    fuzzyHash = genFuzzyHash(args.filepath)
-    print('Fuzzy hash:',fuzzyHash)
+print(sum)
+print(End_text)
