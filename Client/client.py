@@ -43,15 +43,18 @@ def processing(filename,static_var=False):
     var_index = 1
     func_index = 1
     isFuncName = False
+    indentAmount=0
     isImportSection = False
     line=''
     with open(filename, 'rb') as f:
         # Code section
         tokens = list(tokenize.tokenize(f.readline))
         for index,token in enumerate(tokens):
-            # Ignore comment encoding nl string indent
-            if(token.type not in [6,61,62,63]): 
-                # New line
+            
+            # Ignore comment encoding nl string dedent
+            if(token.type not in [61,62,63]): 
+
+                # Token type is New line
                 if(token.type==4):
                     if(isImportSection):
                         isImportSection=False
@@ -59,8 +62,14 @@ def processing(filename,static_var=False):
                     else:
                         code_section+=line.strip()+'\n'
                     line=''
+                # Token type is Indent
+                elif(token.type==5):
+                    indentAmount+=1
+                    line+='_'*indentAmount
+                elif(token.type==6):
+                    indentAmount-=1
                 # Token type is Name
-                if(token.type==1):
+                elif(token.type==1):
                     # Token string is Keyword
                     if(keyword.iskeyword(token.string)):
                         if(token.string.lower()=='def'):
@@ -111,6 +120,7 @@ def processing(filename,static_var=False):
     # Sort Header
     import_section = list(import_section)
     import_section.sort()
+
     result = '\n'.join(import_section)+'\n' + code_section
     return result
 
@@ -136,6 +146,3 @@ if __name__ == "__main__":
     print(process_code)
     fuzzyHash = genFuzzyHash(process_code)
     print('Fuzzy hash:',fuzzyHash)
-
-
-
