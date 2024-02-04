@@ -3,6 +3,7 @@ import argparse
 import ssdeep
 import keyword
 
+# Constant variable
 BUILT_IN_FUNC = ['abs','alter','all','anext','any','ascii','bin','bool','breakpoint','bytearray','bytes','callable','chr','classmethod','compile','complex','delattr','dict','dir','divmod','enumerate','eval','exec','filter','float','format','frozenset','getattr','globals','hasattr','hash','help','hex','id','input','int','isinstance','issubclass','iter','len','list','locals','map','max','memoryview','min','next','object','oct','open','ord','pow','print','property','range','repr','reversed','round','set','setattr','slice','sorted','staticmethod','str','sum','super','tuple','type','vars','zip']
 TMP_FILENAME = "tmp"
 
@@ -46,30 +47,40 @@ def processing(filename,static_var=False):
     indentAmount=0
     isImportSection = False
     line=''
+
     with open(filename, 'rb') as f:
         # Code section
         tokens = list(tokenize.tokenize(f.readline))
         for index,token in enumerate(tokens):
-            
-            # Ignore comment encoding nl string dedent
+
+            # Ignore comment nl encoding 
+            # 61 = Comment
+            # 62 = NL (New empty line)
+            # 63 = Encoding (Start of file) 
             if(token.type not in [61,62,63]): 
 
                 # Token type is New line
                 if(token.type==4):
+                    # Token is in Import section
                     if(isImportSection):
                         isImportSection=False
                         import_section.add(line.strip())
                     else:
                         code_section+=line.strip()+'\n'
                     line=''
+
                 # Token type is Indent
                 elif(token.type==5):
                     indentAmount+=1
                     line+='_'*indentAmount
+                    
+                # Token type is Dedent
                 elif(token.type==6):
                     indentAmount-=1
+
                 # Token type is Name
                 elif(token.type==1):
+
                     # Token string is Keyword
                     if(keyword.iskeyword(token.string)):
                         if(token.string.lower()=='def'):
@@ -77,6 +88,7 @@ def processing(filename,static_var=False):
                         elif(token.string.lower()=='import' or token.string.lower()=='from'):
                             isImportSection=True
                         line+=token.string
+
                     # Token string is Built-in function name
                     elif(isBuiltIn(token.string)):
                         if(index+1<len(tokens)):
@@ -88,6 +100,7 @@ def processing(filename,static_var=False):
                         else:
                             var_index = addToMap(token.string,var_index,var_map)
                             line+= var_map[token.string] if not static_var else 'V'
+
                     # Token string is declare function name
                     elif(token.string in func_map):
                         if(index+1<len(tokens)):
@@ -99,6 +112,7 @@ def processing(filename,static_var=False):
                         else:
                             var_index = addToMap(token.string,var_index,var_map)
                             line+= var_map[token.string] if not static_var else 'V'
+
                     # Token string is other name
                     else:
                         # Current string token is Func name
@@ -112,6 +126,7 @@ def processing(filename,static_var=False):
                         else:
                             var_index = addToMap(token.string,var_index,var_map)
                             line+=var_map[token.string] if not static_var else 'V'
+
                 # Token is other type (Eg. OP)
                 else:
                     isFuncName=False
@@ -143,6 +158,8 @@ if __name__ == "__main__":
     static_var=False
     prepro_code = removeMultilineComment(args.filepath)
     process_code = processing(TMP_FILENAME,static_var)
+    print('\n******************** Normalized Code ********************')
     print(process_code)
+    print('*********************************************************\n')
     fuzzyHash = genFuzzyHash(process_code)
     print('Fuzzy hash:',fuzzyHash)
