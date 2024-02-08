@@ -41,24 +41,30 @@ def processing(filename,static_var=False):
     import_section = set()
     var_map = {}
     func_map = {}
+    funcInput_map = {}
+    funcVar_map = {}
     var_index = 1
     func_index = 1
+    funcInput_index = 1
+    funcVar_index = 1
     isFuncName = False
     indentAmount=0
+    current_func_dedent=0
     isImportSection = False
+    isFuncInput = False
     line=''
+    isInFunc = False
 
     with open(filename, 'rb') as f:
-        # Code section
         tokens = list(tokenize.tokenize(f.readline))
         for index,token in enumerate(tokens):
-
+            print(token)
             # Ignore comment nl encoding 
             # 61 = Comment
             # 62 = NL (New empty line)
             # 63 = Encoding (Start of file) 
             if(token.type not in [61,62,63]): 
-
+                
                 # Token type is New line
                 if(token.type==4):
                     # Token is in Import section
@@ -66,6 +72,7 @@ def processing(filename,static_var=False):
                         isImportSection=False
                         import_section.add(line.strip())
                     else:
+                        # print('Line:',line)
                         code_section+=line.strip()+'\n'
                     line=''
 
@@ -77,14 +84,24 @@ def processing(filename,static_var=False):
                 # Token type is Dedent
                 elif(token.type==6):
                     indentAmount-=1
+                    # End of Function
+                    if(isInFunc and current_func_dedent==indentAmount):
+                        isInFunc=False
+                        funcInput_map = {}
+                        funcInput_index = 1
+                        funcVar_map = {}
+                        funcVar_index = 1
 
                 # Token type is Name
                 elif(token.type==1):
 
                     # Token string is Keyword
                     if(keyword.iskeyword(token.string)):
+                        # Start of Function
                         if(token.string.lower()=='def'):
                             isFuncName=True
+                            isInFunc=True
+                            current_func_dedent = indentAmount
                         elif(token.string.lower()=='import' or token.string.lower()=='from'):
                             isImportSection=True
                         line+=token.string
@@ -95,10 +112,10 @@ def processing(filename,static_var=False):
                             if(tokens[index+1].string=='('):
                                 line+=token.string
                             else:
-                                var_index = addToMap(token.string,var_index,var_map)
+                                var_index = addToMap(token.string,var_index,var_map,"VAR")
                                 line+= var_map[token.string] if not static_var else 'V'
                         else:
-                            var_index = addToMap(token.string,var_index,var_map)
+                            var_index = addToMap(token.string,var_index,var_map,"VAR")
                             line+= var_map[token.string] if not static_var else 'V'
 
                     # Token string is declare function name
@@ -107,29 +124,43 @@ def processing(filename,static_var=False):
                             if(tokens[index+1].string=='('):
                                 line+= func_map[token.string] if not static_var else 'F'
                             else:
-                                var_index = addToMap(token.string,var_index,var_map)
+                                var_index = addToMap(token.string,var_index,var_map,"VAR")
                                 line+= var_map[token.string] if not static_var else 'V'
                         else:
-                            var_index = addToMap(token.string,var_index,var_map)
+                            var_index = addToMap(token.string,var_index,var_map,"VAR")
                             line+= var_map[token.string] if not static_var else 'V'
 
                     # Token string is other name
                     else:
                         # Current string token is Func name
                         if(isFuncName):
-                            func_index = addToMap(token.string,func_index,func_map,isVar=False)
+                            func_index = addToMap(token.string,func_index,func_map,"FUNC")
                             line+= func_map[token.string] if not static_var else 'F'
                             isFuncName=False
                         # Current string token is in Import section
                         elif(isImportSection):
                             line+=token.string
+                        # Current string token is Func input
+                        elif (isFuncInput):
+                            funcInput_index = addToMap(token.string,funcInput_index,funcInput_map,"FUNC_INPUT")
+                            line+= funcInput_map[token.string]
+                        # Current string is in Func (Var in function)
+                        elif(isInFunc):
+                            funcVar_index = addToMap(token.string,funcVar_index,funcVar_map,"VAR")
+                            line+=funcInput_map[token.string] if token.string in funcInput_map else funcVar_map[token.string]
                         else:
-                            var_index = addToMap(token.string,var_index,var_map)
+                            var_index = addToMap(token.string,var_index,var_map,"VAR")
                             line+=var_map[token.string] if not static_var else 'V'
-
-                # Token is other type (Eg. OP)
+                # Token type is OP
+                elif(token.type==54):
+                    if(isInFunc):
+                        if(token.string=='('):
+                            isFuncInput=True
+                        elif(token.string==')'):
+                            isFuncInput=False
+                    line+=token.string
+                # Token is other type
                 else:
-                    isFuncName=False
                     line+=token.string
     
     # Sort Header
@@ -139,9 +170,14 @@ def processing(filename,static_var=False):
     result = '\n'.join(import_section)+'\n' + code_section
     return result
 
-def addToMap(key,index,map,isVar=True):
+def addToMap(key,index,map,type='VAR'):
     if(key not in map):
-        map[key]='V'+str(index) if isVar else 'F'+str(index)
+        if(type=='VAR'):
+            map[key]='V'+str(index) 
+        elif(type=='FUNC'):
+            map[key]='F'+str(index) 
+        elif(type=="FUNC_INPUT"):
+            map[key]='I'+str(index) 
         index+=1
     return index
     
