@@ -1,6 +1,6 @@
 import tokenize
 import argparse
-import ssdeep
+import tlsh
 import keyword
 
 # Constant variable
@@ -27,7 +27,7 @@ def removeMultilineComment(filename):
                 continue
 
             # Found start of the multiline comment
-            if multicomment_start !=-1: 
+            if multicomment_start !=-1 and line.find('"')!=multicomment_start-1: 
                 isMultiCommentStart = not isMultiCommentStart
                 if not isMultiCommentStart:
                     out+=line[multicomment_start+3:]
@@ -58,7 +58,7 @@ def processing(filename,static_var=False):
     with open(filename, 'rb') as f:
         tokens = list(tokenize.tokenize(f.readline))
         for index,token in enumerate(tokens):
-            print(token)
+            # print(token)
             # Ignore comment nl encoding 
             # 61 = Comment
             # 62 = NL (New empty line)
@@ -168,7 +168,7 @@ def processing(filename,static_var=False):
     import_section.sort()
 
     result = '\n'.join(import_section)+'\n' + code_section
-    return result
+    return code_section
 
 def addToMap(key,index,map,type='VAR'):
     if(key not in map):
@@ -182,7 +182,7 @@ def addToMap(key,index,map,type='VAR'):
     return index
     
 def genFuzzyHash(string):
-    return ssdeep.hash(string)
+    return tlsh.hash(string.encode())
 
 parser = argparse.ArgumentParser(description='Generate Fussy Hash')
 parser.add_argument('filepath', metavar='FilePath', type=str,
@@ -195,7 +195,7 @@ if __name__ == "__main__":
     prepro_code = removeMultilineComment(args.filepath)
     process_code = processing(TMP_FILENAME,static_var)
     print('\n******************** Normalized Code ********************')
-    print(process_code)
+    # print(process_code)
     print('*********************************************************\n')
     fuzzyHash = genFuzzyHash(process_code)
     print('Fuzzy hash:',fuzzyHash)
