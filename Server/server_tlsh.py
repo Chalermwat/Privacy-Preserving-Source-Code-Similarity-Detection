@@ -15,7 +15,8 @@ def CompareHash():
     hash1 = request.form['hash1']
     hash2 = request.form['hash2']
     try:
-        score = tlsh.diff(hash1,hash2)
+        # score = tlsh.diff(hash1,hash2)
+        score = tlsh.diffxlen(hash1,hash2)
     except:
         return render_template('index.html',score="Invalid Hash")
 

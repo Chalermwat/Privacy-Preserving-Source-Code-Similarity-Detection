@@ -36,60 +36,16 @@ def removeMultilineComment(filename):
                     out+=line
     o.write(out)
 
-def encrypt_mode(filename,password,**kwargs):
-    #  Read the plaintext file
-    with open(filename,'r') as f:
-        data = f.read()
-
-    enc_alg = kwargs['enc_alg'].lower()
-    iter = kwargs['iter']
-    outfile = kwargs['out']
-    key_alg = kwargs['key_alg']
-    hmac_alg = kwargs['hmac_alg']
-
-    #  Generate key from password
-    salt,enc_key,hmac_key = key.generateFromPass(password,enc_alg,iter,key_alg)
-
-    # Encrypt the file with generated enc_key
-    iv,ct = encryptFile(data,enc_key,enc_alg)
-
-    #  Prepare the data for payload
-    data = {
-        'meta': {
-            'salt': salt,
-            'enc_alg':enc_alg,
-            'key_alg':key_alg,
-            'hmac_alg':hmac_alg,
-            'iter':iter
-        },
-        'iv': iv,
-        'ciphertext': ct
-    }
-    data_json = json.dumps(data)
- 
-    # Build the payload & add HMAC of data
-    payload = {
-        'data':data_json,
-        'hmac': mac(hmac_key,data_json,hmac_alg)
-    }
-    payload_json = json.dumps(payload)
-
-    # Write the payload to file
-    with open(outfile+'.enc','w') as c:
-        c.write(payload_json)
-    
-    print(f'Encrypting Success!!!')
-
 def processing(filename,static_var=False):
     code_section = ''
     import_section = set()
     var_map = {}
     func_map = {}
-    funcInput_map = {}
+    # funcInput_map = {}
     funcVar_map = {}
     var_index = 1
     func_index = 1
-    funcInput_index = 1
+    # funcInput_index = 1
     funcVar_index = 1
     isFuncName = False
     indentAmount=0
@@ -107,6 +63,7 @@ def processing(filename,static_var=False):
             # 61 = Comment
             # 62 = NL (New empty line)
             # 63 = Encoding (Start of file) 
+
             if(token.type not in [61,62,63]): 
                 
                 # Token type is New line
@@ -156,11 +113,19 @@ def processing(filename,static_var=False):
                             if(tokens[index+1].string=='('):
                                 line+=token.string
                             else:
+                                if(isInFunc):
+                                    funcVar_index = addToMap(token.string,funcVar_index,funcVar_map,"VAR")
+                                    line+=funcVar_map[token.string]
+                                else:
+                                    var_index = addToMap(token.string,var_index,var_map,"VAR")
+                                    line+= var_map[token.string] if not static_var else 'V'
+                        else:
+                            if(isInFunc):
+                                    funcVar_index = addToMap(token.string,funcVar_index,funcVar_map,"VAR")
+                                    line+=funcVar_map[token.string]
+                            else:
                                 var_index = addToMap(token.string,var_index,var_map,"VAR")
                                 line+= var_map[token.string] if not static_var else 'V'
-                        else:
-                            var_index = addToMap(token.string,var_index,var_map,"VAR")
-                            line+= var_map[token.string] if not static_var else 'V'
 
                     # Token string is declare function name
                     elif(token.string in func_map):
@@ -186,12 +151,15 @@ def processing(filename,static_var=False):
                             line+=token.string
                         # Current string token is Func input
                         elif (isFuncInput):
-                            funcInput_index = addToMap(token.string,funcInput_index,funcInput_map,"FUNC_INPUT")
-                            line+= funcInput_map[token.string]
+                            # funcInput_index = addToMap(token.string,funcInput_index,funcInput_map,"FUNC_INPUT")
+                            # line+= funcInput_map[token.string]
+                            funcVar_index = addToMap(token.string,funcVar_index,funcVar_map,"VAR")
+                            line+=funcVar_map[token.string]
                         # Current string is in Func (Var in function)
                         elif(isInFunc):
                             funcVar_index = addToMap(token.string,funcVar_index,funcVar_map,"VAR")
-                            line+=funcInput_map[token.string] if token.string in funcInput_map else funcVar_map[token.string]
+                            line+=funcVar_map[token.string]
+                            # line+=funcInput_map[token.string] if token.string in funcInput_map else funcVar_map[token.string]
                         else:
                             var_index = addToMap(token.string,var_index,var_map,"VAR")
                             line+=var_map[token.string] if not static_var else 'V'
@@ -212,7 +180,7 @@ def processing(filename,static_var=False):
     import_section.sort()
 
     result = '\n'.join(import_section)+'\n' + code_section
-    return result
+    return code_section
 
 def addToMap(key,index,map,type='VAR'):
     if(key not in map):
@@ -225,24 +193,21 @@ def addToMap(key,index,map,type='VAR'):
         index+=1
     return index
     
+def genFuzzyHash(string):
+    return tlsh.hash(string.encode())
+
 parser = argparse.ArgumentParser(description='Generate Fussy Hash')
 parser.add_argument('filepath', metavar='FilePath', type=str,
                     help='File path to source code')
 
 args = parser.parse_args()
 
-def genFuzzyHash(filename):
-    with open(filename, 'r') as f:
-        code_string = ''.join(f.readlines())
-    print(code_string)
-    return tlsh.hash(code_string.encode())
-
 if __name__ == "__main__":
     static_var=False
     prepro_code = removeMultilineComment(args.filepath)
     process_code = processing(TMP_FILENAME,static_var)
     print('\n******************** Normalized Code ********************')
-    # print(process_code)
+    print(process_code)
     print('*********************************************************\n')
     fuzzyHash = genFuzzyHash(process_code)
     print('Fuzzy hash:',fuzzyHash)
