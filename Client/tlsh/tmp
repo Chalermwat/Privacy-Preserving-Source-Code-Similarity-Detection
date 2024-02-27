@@ -1,18 +1,26 @@
+from flask import Flask, request, render_template
+import tlsh
 
-#  Read the ciphertext file
-with open(filename,'r') as c:
-    payload = c.read()
+app = Flask(__name__)
 
-#  Extract metadata (salt,alg)
-payload = json.loads(payload)
-salt = json.loads(payload['data'])['meta']['salt']
-enc_alg = json.loads(payload['data'])['meta']['enc_alg'].lower()
-key_alg = json.loads(payload['data'])['meta']['key_alg'].lower()
-hmac_alg = json.loads(payload['data'])['meta']['hmac_alg'].lower()
-iter = json.loads(payload['data'])['meta']['iter']
+HOST = "127.0.0.1"
+PORT = "3000"
 
-#  Generate key from password
-_,enc_key,hmac_key = key.generateFromPass(password,enc_alg,iter,key_alg,salt)
+@app.route('/')
+def hello():
+    return render_template('index.html')
 
-#  Calculate HMAC from given password
-cal_hmac = mac(hmac_key,payload['data'],hmac_alg)
+@app.post('/compare')
+def CompareHash():
+    hash1 = request.form['hash1']
+    hash2 = request.form['hash2']
+    try:
+        # score = tlsh.diff(hash1,hash2)
+        score = tlsh.diffxlen(hash1,hash2)
+    except:
+        return render_template('index.html',score="Invalid Hash")
+
+    return render_template('index.html',score=str(score))
+
+if __name__ == "__main__":
+    app.run(host=HOST, port=PORT, debug=True)

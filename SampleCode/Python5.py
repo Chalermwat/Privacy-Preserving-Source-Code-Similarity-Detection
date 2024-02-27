@@ -1,13 +1,26 @@
-w='# Welcome #'
-e="### End ###"
-r=10
-s=0
+from flask import Flask, request, render_template
+import tlsh
 
-print(w)
-for index in range(r):
-    s=s+index
+app = Flask(__name__)
 
+HOST = "127.0.0.1"
+PORT = "3000"
 
-print(s)
+@app.route('/')
+def hello():
+    return render_template('index.html')
 
-print(e)
+@app.post('/compare')
+def CompareHash():
+    hash1 = request.form['hash1']
+    hash2 = request.form['hash2']
+    try:
+        # score = tlsh.diff(hash1,hash2)
+        score = tlsh.diffxlen(hash1,hash2)
+    except:
+        return render_template('index.html',score="Invalid Hash")
+
+    return render_template('index.html',score=str(score))
+
+if __name__ == "__main__":
+    app.run(host=HOST, port=PORT, debug=True)
