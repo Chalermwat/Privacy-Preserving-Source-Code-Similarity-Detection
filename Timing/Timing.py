@@ -206,7 +206,7 @@ def genFuzzyHashFromFile(filename):
 path = './Sample'
 dir_list = os.listdir(path)
 static_var=False
-
+out_list = []
 for i in dir_list:
     filepath = path+'/'+i
 
@@ -227,4 +227,10 @@ for i in dir_list:
     print('Hash Time:',hash_time)
 
     diffTIme = normalized_time-hash_time
-    print(diffTIme)
+    file_stat = os.stat(filepath)
+    out_element = (file_stat.st_size,diffTIme)
+    out_list.append(out_element)
+
+out_list.sort()
+for i in out_list:
+    print(i)

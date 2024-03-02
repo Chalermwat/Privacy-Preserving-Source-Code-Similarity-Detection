@@ -5,11 +5,15 @@ with open(filename,'r') as c:
 
 #  Extract metadata (salt,alg)
 payload = json.loads(payload)
-salt = json.loads(payload['data'])['meta']['salt']
-enc_alg = json.loads(payload['data'])['meta']['enc_alg'].lower()
-key_alg = json.loads(payload['data'])['meta']['key_alg'].lower()
-hmac_alg = json.loads(payload['data'])['meta']['hmac_alg'].lower()
 iter = json.loads(payload['data'])['meta']['iter']
+hmac_alg = json.loads(payload['data'])['meta']['hmac_alg'].lower()
+key_alg = json.loads(payload['data'])['meta']['key_alg'].lower()
+enc_alg = json.loads(payload['data'])['meta']['enc_alg'].lower()
+salt = json.loads(payload['data'])['meta']['salt']
+
+
+
+
 
 #  Generate key from password
 _,enc_key,hmac_key = key.generateFromPass(password,enc_alg,iter,key_alg,salt)

@@ -1,11 +1,11 @@
 import tokenize
-import argparse
 import tlsh
 import keyword
-import json
+import os
+import time
 
 # Constant variable
-BUILT_IN_FUNC = ['abs','alter','all','anext','any','ascii','bin','bool','breakpoint','bytearray','bytes','callable','chr','classmethod','compile','complex','delattr','dict','dir','divmod','enumerate','eval','exec','filter','float','format','frozenset','getattr','globals','hasattr','hash','help','hex','id','input','int','isinstance','issubclass','iter','len','list','locals','map','max','memoryview','min','next','object','oct','open','ord','pow','print','property','range','repr','reversed','round','set','setattr','slice','sorted','staticmethod','str','sum','super','tuple','type','vars','zip']
+BUILT_IN_FUNC = ['abs','alter','all','anext','any','ascii','bin','bool','breakpoint','bytearray','bytes','callable','chr','classmethod','compile','complex','delattr','dict','dir','divmod','enumerate','eval','exec','filter','float','format','frozenset','getattr','globals','hasattr','hash','help','hex','id','input','int','isinstance','issubclass','iter','len','list','locals','map','max','memoryview','min','next','object','oct','open','ord','pow','print','property','range','repr','reversed','round','set','setattr','slice','sorted','staticmethod','str','sum','super','tuple','type','vars','zip','__import__']
 TMP_FILENAME = "tmp"
 
 def isBuiltIn(string):
@@ -65,7 +65,6 @@ def processing(filename,static_var=False):
             # 62 = NL (New empty line)
             # 63 = Encoding (Start of file) 
 
-            # print(token)
             if(token.type not in [61,62,63]): 
                 
                 # Token type is New line
@@ -77,7 +76,6 @@ def processing(filename,static_var=False):
                     else:
                         # print('Line:',line)
                         code_section+=line.strip()+'\n'
-                        
                     line=''
 
                 # Token type is Indent
@@ -181,8 +179,9 @@ def processing(filename,static_var=False):
     # Sort Header
     import_section = list(import_section)
     import_section.sort()
+
     result = '\n'.join(import_section)+'\n' + code_section
-    return result
+    return result + code_section
 
 def addToMap(key,index,map,type='VAR'):
     if(key not in map):
@@ -194,76 +193,59 @@ def addToMap(key,index,map,type='VAR'):
             map[key]='I'+str(index) 
         index+=1
     return index
-
-def splitLine(normalized_code,amountOfLine):
-    line_list = normalized_code.split('\n')
-    line_list = [i for i in line_list if i != '']
-    out_list=[]
-
-    if(len(line_list)<amountOfLine): amountOfLine=len(line_list)
-
-    start=0
-    end=start+amountOfLine
-
-    while True:
-        if(end>len(line_list)): 
-            # print(start,end)
-            if(end-start>amountOfLine):
-                current_codeBlock = ''.join(line_list[start-1:end])
-                # print(current_codeBlock)
-                out_data = (start,end,current_codeBlock)
-                out_list.append(out_data)
-            break
-
-        # print(start,end)
-        current_codeBlock = ''.join(line_list[start:end])
-        if(end-start>=amountOfLine):
-            if(len(current_codeBlock)>50): 
-                # print(current_codeBlock)
-                out_data = (start,end,current_codeBlock)
-                out_list.append(out_data)
-                start+=1
-                end=start+amountOfLine
-            else:
-                end+=1
-        else:
-            end+=1
-    # print(line_list,len(line_list))
-    return out_list
-
-def genFuzzyHashList(split_list):
-    out_map = {}
-    for i in split_list:
-        hash = genFuzzyHash(i[2])
-        if hash=='TNULL': continue
-        key = f'S{i[0]}E{i[1]}'
-        out_map[key] = hash
-    return out_map
-
-def displayProcessCode(normalized_code):
-    line_list = normalized_code.split('\n')
-    line_list = [i for i in line_list if i != '']
-    for i in range(len(line_list)):
-        print(f'Line {i} : {line_list[i]}')
-
+    
 def genFuzzyHash(string):
     return tlsh.hash(string.encode())
 
-parser = argparse.ArgumentParser(description='Generate Fussy Hash')
-parser.add_argument('filepath', metavar='FilePath', type=str,
-                    help='File path to source code')
 
-args = parser.parse_args()
+path = './1_512B.1024B'
+dir_list = os.listdir(path)
+static_var=False
+hash_list=[]
+for i in dir_list:
+    filepath = path+'/'+i
 
-if __name__ == "__main__":
-    static_var=False
-    prepro_code = removeMultilineComment(args.filepath)
+    # With Normalized
+    prepro_code = removeMultilineComment(filepath)
     process_code = processing(TMP_FILENAME,static_var)
-    print('\n******************** Normalized Code ********************')
-    displayProcessCode(process_code)
-    print('*********************************************************\n')
     fuzzyHash = genFuzzyHash(process_code)
-    print('Fuzzy hash:',fuzzyHash)
-    splitList = splitLine(process_code,10)
-    fuzzyHashList = genFuzzyHashList(splitList)
-    print('FuzzyHashList:',json.dumps({'HashList':fuzzyHashList}))
+    hash_list.append((i,fuzzyHash))
+
+# path = './2_1024B.2048B'
+# dir_list = os.listdir(path)
+# static_var=False
+# for i in dir_list:
+#     filepath = path+'/'+i
+
+#     # With Normalized
+#     prepro_code = removeMultilineComment(filepath)
+#     process_code = processing(TMP_FILENAME,static_var)
+#     fuzzyHash = genFuzzyHash(process_code)
+#     hash_list.append((i,fuzzyHash))
+
+print(hash_list)
+out_list=[]
+for i in range(len(hash_list)-1):
+    for j in range(i+1,len(hash_list)):
+        hash1 = hash_list[i][1]
+        hash2 = hash_list[j][1]
+        score = tlsh.diffxlen(hash1,hash2)
+        out_list.append((hash_list[i],hash_list[j],score))
+
+s=0
+s_list=[]
+for i in out_list:
+    print(i)
+    s_list.append(i[2])
+    s+=i[2]
+
+print(s/len(out_list))
+print(len(s_list))
+s_list.sort()
+print(s_list[13])
+print(len(BUILT_IN_FUNC))
+
+
+
+
+

@@ -127,5 +127,3 @@ if args.MODE.lower() == 'encrypt':
 elif args.MODE.lower() == 'decrypt':
 
     decrypt_mode(filename,password,outfile=outfile)
-
-

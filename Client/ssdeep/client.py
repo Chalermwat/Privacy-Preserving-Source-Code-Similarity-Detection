@@ -41,11 +41,11 @@ def processing(filename,static_var=False):
     import_section = set()
     var_map = {}
     func_map = {}
-    funcInput_map = {}
+    # funcInput_map = {}
     funcVar_map = {}
     var_index = 1
     func_index = 1
-    funcInput_index = 1
+    # funcInput_index = 1
     funcVar_index = 1
     isFuncName = False
     indentAmount=0
@@ -63,6 +63,7 @@ def processing(filename,static_var=False):
             # 61 = Comment
             # 62 = NL (New empty line)
             # 63 = Encoding (Start of file) 
+
             if(token.type not in [61,62,63]): 
                 
                 # Token type is New line
@@ -112,11 +113,19 @@ def processing(filename,static_var=False):
                             if(tokens[index+1].string=='('):
                                 line+=token.string
                             else:
+                                if(isInFunc):
+                                    funcVar_index = addToMap(token.string,funcVar_index,funcVar_map,"VAR")
+                                    line+=funcVar_map[token.string]
+                                else:
+                                    var_index = addToMap(token.string,var_index,var_map,"VAR")
+                                    line+= var_map[token.string] if not static_var else 'V'
+                        else:
+                            if(isInFunc):
+                                    funcVar_index = addToMap(token.string,funcVar_index,funcVar_map,"VAR")
+                                    line+=funcVar_map[token.string]
+                            else:
                                 var_index = addToMap(token.string,var_index,var_map,"VAR")
                                 line+= var_map[token.string] if not static_var else 'V'
-                        else:
-                            var_index = addToMap(token.string,var_index,var_map,"VAR")
-                            line+= var_map[token.string] if not static_var else 'V'
 
                     # Token string is declare function name
                     elif(token.string in func_map):
@@ -142,12 +151,15 @@ def processing(filename,static_var=False):
                             line+=token.string
                         # Current string token is Func input
                         elif (isFuncInput):
-                            funcInput_index = addToMap(token.string,funcInput_index,funcInput_map,"FUNC_INPUT")
-                            line+= funcInput_map[token.string]
+                            # funcInput_index = addToMap(token.string,funcInput_index,funcInput_map,"FUNC_INPUT")
+                            # line+= funcInput_map[token.string]
+                            funcVar_index = addToMap(token.string,funcVar_index,funcVar_map,"VAR")
+                            line+=funcVar_map[token.string]
                         # Current string is in Func (Var in function)
                         elif(isInFunc):
                             funcVar_index = addToMap(token.string,funcVar_index,funcVar_map,"VAR")
-                            line+=funcInput_map[token.string] if token.string in funcInput_map else funcVar_map[token.string]
+                            line+=funcVar_map[token.string]
+                            # line+=funcInput_map[token.string] if token.string in funcInput_map else funcVar_map[token.string]
                         else:
                             var_index = addToMap(token.string,var_index,var_map,"VAR")
                             line+=var_map[token.string] if not static_var else 'V'
@@ -168,7 +180,7 @@ def processing(filename,static_var=False):
     import_section.sort()
 
     result = '\n'.join(import_section)+'\n' + code_section
-    return result
+    return result + code_section
 
 def addToMap(key,index,map,type='VAR'):
     if(key not in map):
