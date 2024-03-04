@@ -217,8 +217,8 @@ for i in dir_list:
     filepath = path+'/'+i
 
     # With Normalized
-    prepro_code = removeMultilineComment(filepath)
-    process_code = processing(TMP_FILENAME,static_var)
+    # prepro_code = removeMultilineComment(filepath)
+    process_code = processing(filepath,static_var)
     fuzzyHash = genFuzzyHash(process_code)
     hash_list.append((i,fuzzyHash))
 
@@ -235,23 +235,23 @@ for i in dir_list:
 #     hash_list.append((i,fuzzyHash))
 
 print(hash_list)
-out_list=[]
+score_list=[]
 for i in range(len(hash_list)-1):
     for j in range(i+1,len(hash_list)):
         hash1 = hash_list[i][1]
         hash2 = hash_list[j][1]
         score = tlsh.diffxlen(hash1,hash2)
-        out_list.append((hash_list[i],hash_list[j],score))
+        score_list.append((hash_list[i],hash_list[j],score))
 
 s=0
 s_list=[]
-for i in out_list:
-    if i[2] < 150 : print(i)
+for i in score_list:
+    # if i[2] < 150 : print(i)
     s_list.append(i[2])
     s+=i[2]
 
-print(s/len(out_list))
-print(f'Size: {len(s_list)}')
+print(s/len(score_list))
+print(f'Size: {len(score_list)}')
 print(max(s_list),min(s_list))
 s_list.sort()
 # print(len(BUILT_IN_FUNC))

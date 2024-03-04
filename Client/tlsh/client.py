@@ -254,7 +254,7 @@ def displayProcessCode(normalized_code):
     line_list = normalized_code.split('\n')
     line_list = [i for i in line_list if i != '']
     for i in range(len(line_list)):
-        print(f'Line {i} : {line_list[i]}')
+        print(f'Line {"{:03d}".format(i)} : {line_list[i]}')
 
 def genFuzzyHash(string):
     return tlsh.hash(string.encode())
