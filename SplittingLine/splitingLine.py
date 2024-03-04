@@ -1,11 +1,12 @@
 import tokenize
+import argparse
 import tlsh
 import keyword
+import json
 import os
-import time
 
 # Constant variable
-BUILT_IN_FUNC = ['abs','alter','all','anext','any','ascii','bin','bool','breakpoint','bytearray','bytes','callable','chr','classmethod','compile','complex','delattr','dict','dir','divmod','enumerate','eval','exec','filter','float','format','frozenset','getattr','globals','hasattr','hash','help','hex','id','input','int','isinstance','issubclass','iter','len','list','locals','map','max','memoryview','min','next','object','oct','open','ord','pow','print','property','range','repr','reversed','round','set','setattr','slice','sorted','staticmethod','str','sum','super','tuple','type','vars','zip','__import__']
+BUILT_IN_FUNC = ['abs','alter','all','anext','any','ascii','bin','bool','breakpoint','bytearray','bytes','callable','chr','classmethod','compile','complex','delattr','dict','dir','divmod','enumerate','eval','exec','filter','float','format','frozenset','getattr','globals','hasattr','hash','help','hex','id','input','int','isinstance','issubclass','iter','len','list','locals','map','max','memoryview','min','next','object','oct','open','ord','pow','print','property','range','repr','reversed','round','set','setattr','slice','sorted','staticmethod','str','sum','super','tuple','type','vars','zip']
 TMP_FILENAME = "tmp"
 
 def isBuiltIn(string):
@@ -77,9 +78,7 @@ def processing(filename,static_var=False):
                     else:
                         # print('Line:',line)
                         code_section+=line.strip()+'\n'
-                    # print(line)
-                    # print(funcVar_map)
-                    # print(var_map)
+                        
                     line=''
 
                 # Token type is Indent
@@ -138,19 +137,11 @@ def processing(filename,static_var=False):
                             if(tokens[index+1].string=='('):
                                 line+= func_map[token.string] if not static_var else 'F'
                             else:
-                                if(isInFunc):
-                                    funcVar_index = addToMap(token.string,funcVar_index,funcVar_map,"VAR")
-                                    line+=funcVar_map[token.string]
-                                else:
-                                    var_index = addToMap(token.string,var_index,var_map,"VAR")
-                                    line+= var_map[token.string] if not static_var else 'V'
-                        else:
-                            if(isInFunc):
-                                funcVar_index = addToMap(token.string,funcVar_index,funcVar_map,"VAR")
-                                line+=funcVar_map[token.string]
-                            else:
                                 var_index = addToMap(token.string,var_index,var_map,"VAR")
                                 line+= var_map[token.string] if not static_var else 'V'
+                        else:
+                            var_index = addToMap(token.string,var_index,var_map,"VAR")
+                            line+= var_map[token.string] if not static_var else 'V'
 
                     # Token string is other name
                     else:
@@ -204,12 +195,61 @@ def addToMap(key,index,map,type='VAR'):
             map[key]='I'+str(index) 
         index+=1
     return index
-    
+
+def splitLine(normalized_code,amountOfLine):
+    line_list = normalized_code.split('\n')
+    line_list = [i for i in line_list if i != '']
+    out_list=[]
+    test_list=[]
+
+    if(len(line_list)<amountOfLine): amountOfLine=len(line_list)
+
+    start=0
+    end=start+amountOfLine
+
+    while True:
+        if(end>len(line_list)): 
+            # print(start,end)
+            if(end-start>amountOfLine):
+                current_codeBlock = ''.join(line_list[start-1:end])
+                # print(current_codeBlock)
+                out_data = (start,end,current_codeBlock)
+                # print(start-1,end)
+                test_list.append(end-start-1)
+                out_list.append(out_data)
+            break
+
+        # print(start,end)
+        current_codeBlock = ''.join(line_list[start:end])
+        if(end-start>=amountOfLine):
+            if(len(current_codeBlock)>50): 
+                # print(current_codeBlock)
+                out_data = (start,end,current_codeBlock)
+                # print(start,end)
+                test_list.append(end-start)
+                out_list.append(out_data)
+                start+=1
+                end=start+amountOfLine
+            else:
+                end+=1
+        else:
+            end+=1
+    # print(line_list,len(line_list))
+    return test_list
+
+
+def displayProcessCode(normalized_code):
+    line_list = normalized_code.split('\n')
+    line_list = [i for i in line_list if i != '']
+    for i in range(len(line_list)):
+        print(f'Line {i} : {line_list[i]}')
+
+
 def genFuzzyHash(string):
     return tlsh.hash(string.encode())
 
 
-path = './1_512B.1024B'
+path = './SampleCode'
 dir_list = os.listdir(path)
 static_var=False
 hash_list=[]
@@ -219,44 +259,6 @@ for i in dir_list:
     # With Normalized
     prepro_code = removeMultilineComment(filepath)
     process_code = processing(TMP_FILENAME,static_var)
-    fuzzyHash = genFuzzyHash(process_code)
-    hash_list.append((i,fuzzyHash))
-
-# path = './2_1024B.2048B'
-# dir_list = os.listdir(path)
-# static_var=False
-# for i in dir_list:
-#     filepath = path+'/'+i
-
-#     # With Normalized
-#     prepro_code = removeMultilineComment(filepath)
-#     process_code = processing(TMP_FILENAME,static_var)
-#     fuzzyHash = genFuzzyHash(process_code)
-#     hash_list.append((i,fuzzyHash))
-
-print(hash_list)
-out_list=[]
-for i in range(len(hash_list)-1):
-    for j in range(i+1,len(hash_list)):
-        hash1 = hash_list[i][1]
-        hash2 = hash_list[j][1]
-        score = tlsh.diffxlen(hash1,hash2)
-        out_list.append((hash_list[i],hash_list[j],score))
-
-s=0
-s_list=[]
-for i in out_list:
-    if i[2] < 150 : print(i)
-    s_list.append(i[2])
-    s+=i[2]
-
-print(s/len(out_list))
-print(f'Size: {len(s_list)}')
-print(max(s_list),min(s_list))
-s_list.sort()
-# print(len(BUILT_IN_FUNC))
-
-
-
-
-
+    splitList = splitLine(process_code,1)
+    splitList.sort()
+    print(splitList)

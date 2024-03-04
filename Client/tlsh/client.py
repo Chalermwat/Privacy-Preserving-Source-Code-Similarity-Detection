@@ -77,7 +77,9 @@ def processing(filename,static_var=False):
                     else:
                         # print('Line:',line)
                         code_section+=line.strip()+'\n'
-                        
+                    # print(line)
+                    # print(funcVar_map)
+                    # print(var_map)
                     line=''
 
                 # Token type is Indent
@@ -91,8 +93,8 @@ def processing(filename,static_var=False):
                     # End of Function
                     if(isInFunc and current_func_dedent==indentAmount):
                         isInFunc=False
-                        funcInput_map = {}
-                        funcInput_index = 1
+                        # funcInput_map = {}
+                        # funcInput_index = 1
                         funcVar_map = {}
                         funcVar_index = 1
 
@@ -136,11 +138,19 @@ def processing(filename,static_var=False):
                             if(tokens[index+1].string=='('):
                                 line+= func_map[token.string] if not static_var else 'F'
                             else:
+                                if(isInFunc):
+                                    funcVar_index = addToMap(token.string,funcVar_index,funcVar_map,"VAR")
+                                    line+=funcVar_map[token.string]
+                                else:
+                                    var_index = addToMap(token.string,var_index,var_map,"VAR")
+                                    line+= var_map[token.string] if not static_var else 'V'
+                        else:
+                            if(isInFunc):
+                                funcVar_index = addToMap(token.string,funcVar_index,funcVar_map,"VAR")
+                                line+=funcVar_map[token.string]
+                            else:
                                 var_index = addToMap(token.string,var_index,var_map,"VAR")
                                 line+= var_map[token.string] if not static_var else 'V'
-                        else:
-                            var_index = addToMap(token.string,var_index,var_map,"VAR")
-                            line+= var_map[token.string] if not static_var else 'V'
 
                     # Token string is other name
                     else:
@@ -257,13 +267,14 @@ args = parser.parse_args()
 
 if __name__ == "__main__":
     static_var=False
-    prepro_code = removeMultilineComment(args.filepath)
-    process_code = processing(TMP_FILENAME,static_var)
+    # prepro_code = removeMultilineComment(args.filepath)
+    # process_code = processing(TMP_FILENAME,static_var)
+    process_code = processing(args.filepath,static_var)
     print('\n******************** Normalized Code ********************')
     displayProcessCode(process_code)
     print('*********************************************************\n')
     fuzzyHash = genFuzzyHash(process_code)
     print('Fuzzy hash:',fuzzyHash)
-    splitList = splitLine(process_code,10)
+    splitList = splitLine(process_code,8)
     fuzzyHashList = genFuzzyHashList(splitList)
     print('FuzzyHashList:',json.dumps({'HashList':fuzzyHashList}))

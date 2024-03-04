@@ -1,23 +1,21 @@
-round=10#Comment
-sum=0 #Comment
-Welcome_text='# Welcome #' #Comment
-End_text="### End ###"#Comment
+import math
 
-""" ---
-This 
-is 
-multiple 
-line
-comment
-asd ###"""
+def isPrime(number):
+    for i in range(2,int(math.sqrt(number))+1):
+        if mod(number,i)==0:
+            return False
+        
+    return True
 
-print(Welcome_text)
-for i in range(round):
+def mod(x, y):
+    """
+    Returns:
+    int: The remainder of x divided by y.
+    """
 
-    # SingleComment
-    sum+=i
-    ''' This is comment ''' 
+    q = x // y
+    r = x - (q * y)
+    return r
 
-print(sum)
-
-print(End_text)
+print(isPrime(2))
+print(isPrime(4))
