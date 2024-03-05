@@ -2,7 +2,8 @@ import tokenize
 import tlsh
 import keyword
 import os
-import time
+import matplotlib.pyplot as plt
+
 
 # Constant variable
 BUILT_IN_FUNC = ['abs','alter','all','anext','any','ascii','bin','bool','breakpoint','bytearray','bytes','callable','chr','classmethod','compile','complex','delattr','dict','dir','divmod','enumerate','eval','exec','filter','float','format','frozenset','getattr','globals','hasattr','hash','help','hex','id','input','int','isinstance','issubclass','iter','len','list','locals','map','max','memoryview','min','next','object','oct','open','ord','pow','print','property','range','repr','reversed','round','set','setattr','slice','sorted','staticmethod','str','sum','super','tuple','type','vars','zip','__import__']
@@ -247,14 +248,16 @@ s=0
 s_list=[]
 for i in score_list:
     # if i[2] < 150 : print(i)
+    print(i[2])
     s_list.append(i[2])
     s+=i[2]
 
 print(s/len(score_list))
 print(f'Size: {len(score_list)}')
 print(max(s_list),min(s_list))
-s_list.sort()
+# s_list.sort()
 # print(len(BUILT_IN_FUNC))
+
 
 
 
