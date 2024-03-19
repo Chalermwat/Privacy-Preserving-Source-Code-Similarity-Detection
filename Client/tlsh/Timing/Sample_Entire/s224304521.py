@@ -1,0 +1,41 @@
+class Stack:
+    # ???????????????????????§??????top??????????????????????????????Max???isFull??¨????????????stack???????????????????????§???
+    def __init__(self):
+        self.top = 0
+        self.Max = 100
+        self.stack = [None]
+
+    def isEmpty(self):
+        return self.top == 0
+    
+    def isFull(self):
+        return self.top >= self.Max
+
+    def push(self, x):
+        if self.isFull():
+            print("Stack overflow!")
+        else:
+            self.top += 1
+            self.stack.append(x)
+
+    def pop(self):
+        if self.isEmpty():
+            print("Stack underflow!")
+        else:
+            self.top -= 1
+            return self.stack.pop()
+
+d_e = input().split()
+
+accumlator = Stack()
+
+for i in d_e:
+    if i in "+-*":
+        post_op = accumlator.pop()
+        pre_op = accumlator.pop()
+        ans = eval(pre_op + i + post_op)
+        accumlator.push(str(ans))
+    else:
+        accumlator.push(i)
+
+print(int(accumlator.pop()))

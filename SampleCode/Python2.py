@@ -25,3 +25,5 @@ import math
 print(Check(2))
 
 print(Check(4))
+
+

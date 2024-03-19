@@ -1,0 +1,30 @@
+def do_calc(data):
+    from collections import deque
+    s = deque()  # ??????????????¨??????????????????
+    while data:
+        elem = data[0]
+        data = data[1:]
+        if elem == '+' or elem == '-' or elem == '*':
+            a = s.pop()
+            b = s.pop()
+            if elem == '+':
+                s.append(b + a)
+            elif elem == '-':
+                s.append(b - a)
+            elif elem == '*':
+                s.append(b * a)
+        else:
+            s.append(int(elem))
+    return s.pop()
+
+
+if __name__ == '__main__':
+    # ??????????????\???
+    data = [x for x in input().split(' ')]
+    # data = ['1', '2', '+', '3', '4', '-', '*']
+
+    # ???????????????
+    result = do_calc(data)
+
+    # ???????????????
+    print(result)
