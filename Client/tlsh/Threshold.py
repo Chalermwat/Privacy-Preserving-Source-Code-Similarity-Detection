@@ -38,7 +38,10 @@ print('Max:',max(s_list))
 print('Mean:',mean(s_list))
 print('Min:',min(s_list))
 
-plt.boxplot(s_list)
+my_dict = {'Distance Score': s_list}
+fig, ax = plt.subplots()
+ax.boxplot(my_dict.values())
+ax.set_xticklabels(my_dict.keys())
 plt.show()
 
 

@@ -65,9 +65,6 @@ def decrypt_mode(filename,password,outfile='plain'):
     enc_alg = json.loads(data)['meta']['enc_alg'].lower()
     salt = json.loads(data)['meta']['salt']
 
-
-
-
     #  Generate key from password
     _,enc_key,hmac_key = key.generateFromPass(password,enc_alg,iter,key_alg,salt)
 
