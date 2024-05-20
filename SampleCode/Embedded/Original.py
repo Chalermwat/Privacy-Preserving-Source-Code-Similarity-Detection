@@ -11,6 +11,8 @@ PORT = "3000"
 def index():
     return render_template('index.html')
 
+salt,enc_key,hmac_key = key.generateFromPass(password,enc_alg,iter,key_alg)
+
 @app.route('/split')
 def split():
     return render_template('index_split.html',scoreMap={'0':'0'})
@@ -27,17 +29,6 @@ def CompareHash():
         return render_template('index.html',score="Invalid Hash")
 
     return render_template('index.html',score=str(score))
-
-with open(filename,'r') as c:
-    payload = c.read()
-
-#  Extract metadata (salt,alg)
-payload = json.loads(payload)
-salt = json.loads(payload['data'])['meta']['salt']
-enc_alg = json.loads(payload['data'])['meta']['enc_alg'].lower()
-key_alg = json.loads(payload['data'])['meta']['key_alg'].lower()
-hmac_alg = json.loads(payload['data'])['meta']['hmac_alg'].lower()
-iter = json.loads(payload['data'])['meta']['iter']
 
 @app.post('/compareSplit')
 def CompareHashSplit():

@@ -1,28 +1,43 @@
 def remainder(x, y):
 
-    # Returns: int: The remainder of x divided by y.
+        # Returns: int: The remainder of x divided by y.
     
-    quotient    =     x   //    y
+        quotient    =     x   //    y
 
-    remainder     =     x   -   (quotient  * y)
+        remainder     =     x   -   (quotient  * y)
 
-    return remainder
+        return remainder
+
+# This is the comment
 
 import math
 
 def Check(integer):
 
+        # This is the comment
+
+
         for i in range(2,int(math.sqrt(integer))+1):
 
-                if remainder(    integer,i   )   ==    0:
+                                # This is the comment
 
-                      return False
+                                if remainder(    integer,i   )   ==    0:
+
+
+                                                                return False
             
+
         return True
+
+# This is the comment
 
 import math
 
+# This is the comment
+
 print(Check(2))
+
+# This is the comment
 
 print(Check(4))
 

@@ -46,7 +46,7 @@ for i in dir_list:
     out_list.append((os.path.getsize(filepath),normalized_time))
 
 # my_dict = {'With Normalizing': process_list, 'Without Normalizing': hash_list}
-my_dict = {'Comparison Time': comparison_time}
+my_dict = {'Comparison Time': compare_list}
 fig, ax = plt.subplots()
 ax.boxplot(my_dict.values())
 ax.set_xticklabels(my_dict.keys())

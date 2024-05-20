@@ -12,5 +12,3 @@ enc_alg = json.loads(payload['data'])['meta']['enc_alg'].lower()
 key_alg = json.loads(payload['data'])['meta']['key_alg'].lower()
 hmac_alg = json.loads(payload['data'])['meta']['hmac_alg'].lower()
 iter = json.loads(payload['data'])['meta']['iter']
-
-

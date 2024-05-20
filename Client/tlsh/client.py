@@ -57,6 +57,8 @@ def displayProcessCode(normalized_code):
 parser = argparse.ArgumentParser(description='Generate Fussy Hash')
 parser.add_argument('filepath', metavar='FilePath', type=str,
                     help='File path to source code')
+parser.add_argument('--line', dest='line', type=int, default=10,
+                    help='Number of Line to split (default: 10)')
 
 args = parser.parse_args()
 
@@ -70,6 +72,7 @@ if __name__ == "__main__":
     print('*********************************************************\n')
     fuzzyHash = fh.genFuzzyHash(process_code)
     print('Fuzzy hash:',fuzzyHash)
-    splitList = splitLine(process_code,10)
+    splitList = splitLine(process_code,args.line)
     fuzzyHashList = genFuzzyHashList(splitList)
+    print(f"Split every {args.line} lines")
     print('FuzzyHashList:',json.dumps({'HashList':fuzzyHashList}))

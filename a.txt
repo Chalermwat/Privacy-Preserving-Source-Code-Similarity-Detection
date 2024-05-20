@@ -1,0 +1,1 @@
+Fuzzy hash is not a traditional hash. Are you sure about that?
